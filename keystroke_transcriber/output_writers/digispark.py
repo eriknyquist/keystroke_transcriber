@@ -1,3 +1,6 @@
+import keyboard
+
+from keystroke_transcriber.utils import scan_code_to_usb_id
 from keystroke_transcriber.output_writer import OutputWriter, OutputType
 
 
@@ -51,14 +54,15 @@ class DigisparkOutputWriter(OutputWriter):
     Converts a list of KeyboardEvent objects into a Digispark arduino sketch (.ino)
     that generates the same keypress events
     """
-    def generate_output(self, keyboard_events, output_type, repeat_count=0, maintain_timing=False):
+    def generate_output(self, keyboard_events, output_type, repeat_count=0, maintain_timing=False,
+                        translate_scan_codes=True):
         event_strings = []
 
         keys_down = 0
         last_event_time = 0
 
         for e in keyboard_events:
-            print(e.to_json())
+            print(e.to_json(), keyboard.key_to_scan_codes(e.scan_code))
             name = e.name.lower()
 
             # Update global counter for how many keys (both regular and modifier keys)
@@ -78,7 +82,12 @@ class DigisparkOutputWriter(OutputWriter):
 
             keycode = '0'
             if keys_down > 0:
-                keycode = '%du' % e.scan_code
+                if translate_scan_codes:
+                    scan_code = scan_code_to_usb_id(e.scan_code)
+                else:
+                    scan_code = e.scan_code
+
+                keycode = '%du' % scan_code
 
             # Calculate millisecond delay time
             if maintain_timing:
