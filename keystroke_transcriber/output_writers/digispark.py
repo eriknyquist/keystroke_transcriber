@@ -68,8 +68,8 @@ class DigisparkOutputWriter(OutputWriter):
     Converts a list of KeyboardEvent objects into a Digispark arduino sketch (.ino)
     that generates the same keypress events
     """
-    def generate_output(self, keyboard_events, output_type, repeat_count=0, maintain_timing=False,
-                        translate_scan_codes=True):
+    def generate_output(self, keyboard_events, output_type, repeat_count=0, repeat_delay_ms=0,
+                        maintain_timing=False, translate_scan_codes=True):
         event_strings = []
 
         keys_down = 0
@@ -79,7 +79,6 @@ class DigisparkOutputWriter(OutputWriter):
         mods_pressed_map = {n: False for n in mod_name_map.values()}
 
         for e in keyboard_events:
-            print(e.to_json(), keyboard.key_to_scan_codes(e.scan_code))
             name = e.name.lower()
 
             # If this is a modifier key, update the map that tracks which modifier
@@ -143,7 +142,13 @@ class DigisparkOutputWriter(OutputWriter):
             setup_text = ''
             loop_text = 'replay_key_events();'
         elif output_type == OutputType.REPEAT_N:
-            setup_text = 'for (unsigned i = 0u; i < %du; i++) replay_key_events();' % repeat_count
+            if repeat_delay_ms > 0:
+                setup_text = ('for (unsigned i = 0u; i < %du; i++)'
+                              '{ replay_key_events(); DigiKeyboard.delay(%s); }'
+                              % (repeat_count, repeat_delay_ms))
+            else:
+                setup_text = 'for (unsigned i = 0u; i < %du; i++) replay_key_events();' % repeat_count
+
             loop_text = ''
         else:
             raise RuntimeError("Unrecognized output type (%d)" % output_type)
