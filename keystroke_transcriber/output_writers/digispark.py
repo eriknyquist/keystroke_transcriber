@@ -138,9 +138,14 @@ class DigisparkOutputWriter(OutputWriter):
         if output_type == OutputType.ONE_SHOT:
             setup_text = 'replay_key_events();'
             loop_text = ''
+
         elif output_type == OutputType.REPEAT_FOREVER:
             setup_text = ''
             loop_text = 'replay_key_events();'
+
+            if repeat_delay_ms > 0:
+                loop_text += ' DigiKeyboard.delay(%s);' % repeat_delay_ms
+
         elif output_type == OutputType.REPEAT_N:
             if repeat_delay_ms > 0:
                 setup_text = ('for (unsigned i = 0u; i < %du; i++)'
