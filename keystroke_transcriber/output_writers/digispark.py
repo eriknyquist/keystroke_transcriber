@@ -12,6 +12,7 @@ c_template ="""
 struct key_event
 {
     uint8_t key;
+    uint8_t mods;
     unsigned long delay_before_ms;
 };
 
@@ -27,7 +28,7 @@ void send_key_event(struct key_event *event)
         DigiKeyboard.delay(event->delay_before_ms);
     }
 
-    DigiKeyboard.sendKeyPress(event->key);
+    DigiKeyboard.sendKeyPress(event->key, event->mods);
 }
 
 void replay_key_events()
@@ -49,6 +50,19 @@ void loop()
 }
 """
 
+# Maps all modifier key names to bitflag names in DigiKeyboard lib
+mod_name_map = {
+    'ctrl': 'MOD_CONTROL_LEFT',
+    'shift': 'MOD_SHIFT_LEFT',
+    'alt': 'MOD_ALT_LEFT',
+    'left windows': 'MOD_GUI_LEFT',
+    'right ctrl': 'MOD_CONTROL_RIGHT',
+    'right shift': 'MOD_SHIFT_RIGHT',
+    'right alt': 'MOD_ALT_RIGHT',
+    'right windows': 'MOD_GUI_RIGHT'
+}
+
+
 class DigisparkOutputWriter(OutputWriter):
     """
     Converts a list of KeyboardEvent objects into a Digispark arduino sketch (.ino)
@@ -61,9 +75,19 @@ class DigisparkOutputWriter(OutputWriter):
         keys_down = 0
         last_event_time = 0
 
+        # Keeps track of which modifier keys are pressed
+        mods_pressed_map = {n: False for n in mod_name_map.values()}
+
         for e in keyboard_events:
             print(e.to_json(), keyboard.key_to_scan_codes(e.scan_code))
             name = e.name.lower()
+
+            # If this is a modifier key, update the map that tracks which modifier
+            # keys are currently being held down
+            is_mod = False
+            if name in mod_name_map:
+                is_mod = True
+                mods_pressed_map[mod_name_map[name]] = "down" == e.event_type
 
             # Update global counter for how many keys (both regular and modifier keys)
             # Are being held down. We do this in order to send a "release all keys"
@@ -81,13 +105,20 @@ class DigisparkOutputWriter(OutputWriter):
                 raise RuntimeError("unrecognized event type '%s'" % e.event_type)
 
             keycode = '0'
-            if keys_down > 0:
+            if keys_down > 0 and not is_mod:
                 if translate_scan_codes:
                     scan_code = scan_code_to_usb_id(e.scan_code)
                 else:
                     scan_code = e.scan_code
 
                 keycode = '%du' % scan_code
+
+            # Generate string containing OR'd names of modifier keys that are currently down
+            mods_pressed = [n for n in mods_pressed_map.keys() if mods_pressed_map[n]]
+            if not mods_pressed:
+                mods = '0'
+            else:
+                mods = ' | '.join(mods_pressed)
 
             # Calculate millisecond delay time
             if maintain_timing:
@@ -101,7 +132,7 @@ class DigisparkOutputWriter(OutputWriter):
 
             last_event_time = e.time
 
-            event_strings.append('{%s, %s}' % (keycode, delay_before_ms))
+            event_strings.append('{%s, %s, %s}' % (keycode, mods, delay_before_ms))
 
         # Decide where to call the function which replays keyboard events,
         # based on the 'output_type' provided
