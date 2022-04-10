@@ -11,6 +11,9 @@ c_template = "// " + const.AUTOGEN_COMMENT_TEXT + "\n" + """
 
 #define NUM_EVENTS (%su)
 
+// Time taken to read the last event from PROGMEM and send it
+static unsigned long last_event_send_ms = 0u;
+
 struct key_event
 {
     uint8_t key;
@@ -25,9 +28,9 @@ const struct key_event key_events[NUM_EVENTS] PROGMEM =
 
 void send_key_event(const struct key_event *event)
 {
-    if (0u < event->delay_before_ms)
+    if (event->delay_before_ms > last_event_send_ms)
     {
-        DigiKeyboard.delay(event->delay_before_ms);
+        DigiKeyboard.delay(event->delay_before_ms - last_event_send_ms);
     }
 
     DigiKeyboard.sendKeyPress(event->key, event->mods);
@@ -40,11 +43,12 @@ void replay_key_events()
     {
         struct key_event event;
 
+        unsigned long start_time = millis();
         event.key = pgm_read_byte_near(&key_events[i].key);
         event.mods = pgm_read_byte_near(&key_events[i].mods);
-        event.delay_before_ms = pgm_read_word_near(&key_events[i].delay_before_ms);
-
+        event.delay_before_ms = pgm_read_%s_near(&key_events[i].delay_before_ms);
         send_key_event(&event);
+        last_event_send_ms = millis() - start_time;
     }
 }
 

@@ -93,7 +93,10 @@ After I pressed Ctrl+C, keystroke_transcriber provided the following Digispark s
 
     #include "DigiKeyboard.h"
 
-    #define NUM_EVENTS (82u)
+    #define NUM_EVENTS (81u)
+
+    // Time taken to read the last event from PROGMEM and send it
+    static unsigned long last_event_send_ms = 0u;
 
     struct key_event
     {
@@ -104,33 +107,34 @@ After I pressed Ctrl+C, keystroke_transcriber provided the following Digispark s
 
     const struct key_event key_events[NUM_EVENTS] PROGMEM =
     {
-        {0, MOD_GUI_LEFT, 0u}, {21u, MOD_GUI_LEFT, 261u}, {0, MOD_GUI_LEFT, 83u},
-        {0, 0, 30u}, {17u, 0, 654u}, {18u, 0, 65u}, {0, 0, 89u}, {23u, 0, 26u},
-        {8u, 0, 62u}, {0, 0, 70u}, {19u, 0, 29u}, {0, 0, 74u}, {4u, 0, 67u},
-        {7u, 0, 71u}, {0, 0, 104u}, {40u, 0, 342u}, {0, 0, 105u},
-        {0, MOD_SHIFT_LEFT, 342u}, {11u, MOD_SHIFT_LEFT, 190u}, {0, 0, 49u},
-        {8u, 0, 63u}, {0, 0, 41u}, {15u, 0, 80u}, {0, 0, 32u}, {15u, 0, 103u},
-        {18u, 0, 72u}, {0, 0, 92u}, {54u, 0, 61u}, {44u, 0, 79u}, {0, 0, 82u},
-        {9u, 0, 0u}, {0, 0, 52u}, {21u, 0, 87u}, {18u, 0, 14u}, {16u, 0, 53u},
-        {44u, 0, 67u}, {0, 0, 64u}, {14u, 0, 114u}, {0, 0, 59u}, {8u, 0, 54u},
-        {0, 0, 55u}, {28u, 0, 65u}, {0, 0, 59u}, {22u, 0, 32u}, {0, 0, 46u},
-        {23u, 0, 150u}, {21u, 0, 63u}, {0, 0, 75u}, {18u, 0, 14u}, {14u, 0, 54u},
-        {0, 0, 71u}, {8u, 0, 45u}, {0, 0, 62u}, {0, MOD_SHIFT_LEFT, 139u},
-        {45u, MOD_SHIFT_LEFT, 43u}, {0, MOD_SHIFT_LEFT, 50u}, {0, 0, 42u},
-        {23u, 0, 197u}, {21u, 0, 42u}, {4u, 0, 49u}, {0, 0, 88u}, {17u, 0, 169u},
-        {0, 0, 65u}, {22u, 0, 19u}, {0, 0, 57u}, {6u, 0, 117u}, {0, 0, 42u},
-        {21u, 0, 94u}, {0, 0, 39u}, {12u, 0, 22u}, {5u, 0, 47u}, {8u, 0, 68u},
-        {21u, 0, 42u}, {0, 0, 45u}, {0, MOD_SHIFT_LEFT, 108u},
-        {30u, MOD_SHIFT_LEFT, 112u}, {0, MOD_SHIFT_LEFT, 62u},
-        {30u, MOD_SHIFT_LEFT, 106u}, {0, MOD_SHIFT_LEFT, 49u},
-        {30u, MOD_SHIFT_LEFT, 75u}, {0, MOD_SHIFT_LEFT, 59u}, {0, 0, 49u}
+        {0, MOD_GUI_LEFT, 0u}, {21u, MOD_GUI_LEFT, 229u}, {0, MOD_GUI_LEFT, 86u},
+        {0, 0, 37u}, {17u, 0, 468u}, {18u, 0, 82u}, {0, 0, 107u}, {23u, 0, 42u},
+        {8u, 0, 119u}, {0, 0, 98u}, {19u, 0, 70u}, {0, 0, 88u}, {4u, 0, 63u},
+        {7u, 0, 68u}, {0, 0, 78u}, {40u, 0, 358u}, {0, 0, 145u},
+        {0, MOD_SHIFT_LEFT, 526u}, {11u, MOD_SHIFT_LEFT, 79u},
+        {0, MOD_SHIFT_LEFT, 59u}, {0, 0, 14u}, {8u, 0, 84u}, {0, 0, 46u},
+        {15u, 0, 64u}, {0, 0, 53u}, {15u, 0, 81u}, {18u, 0, 39u}, {0, 0, 90u},
+        {54u, 0, 86u}, {44u, 0, 84u}, {9u, 0, 62u}, {0, 0, 52u}, {21u, 0, 84u},
+        {18u, 0, 49u}, {16u, 0, 34u}, {44u, 0, 79u}, {0, 0, 57u}, {14u, 0, 132u},
+        {0, 0, 60u}, {8u, 0, 39u}, {0, 0, 46u}, {28u, 0, 83u}, {0, 0, 45u},
+        {22u, 0, 16u}, {0, 0, 43u}, {23u, 0, 149u}, {21u, 0, 58u}, {0, 0, 58u},
+        {18u, 0, 20u}, {14u, 0, 46u}, {0, 0, 57u}, {8u, 0, 25u}, {0, 0, 47u},
+        {0, MOD_SHIFT_LEFT, 119u}, {45u, MOD_SHIFT_LEFT, 43u},
+        {0, MOD_SHIFT_LEFT, 52u}, {0, 0, 38u}, {23u, 0, 158u}, {21u, 0, 35u},
+        {4u, 0, 43u}, {0, 0, 64u}, {17u, 0, 126u}, {22u, 0, 38u}, {0, 0, 27u},
+        {6u, 0, 107u}, {0, 0, 47u}, {21u, 0, 120u}, {0, 0, 46u}, {12u, 0, 0u},
+        {5u, 0, 82u}, {8u, 0, 66u}, {21u, 0, 31u}, {0, 0, 53u},
+        {0, MOD_SHIFT_LEFT, 143u}, {30u, MOD_SHIFT_LEFT, 92u},
+        {0, MOD_SHIFT_LEFT, 58u}, {30u, MOD_SHIFT_LEFT, 83u},
+        {0, MOD_SHIFT_LEFT, 44u}, {30u, MOD_SHIFT_LEFT, 138u},
+        {0, MOD_SHIFT_LEFT, 36u}, {0, 0, 36u}
     };
 
     void send_key_event(const struct key_event *event)
     {
-        if (0u < event->delay_before_ms)
+        if (event->delay_before_ms > last_event_send_ms)
         {
-            DigiKeyboard.delay(event->delay_before_ms);
+            DigiKeyboard.delay(event->delay_before_ms - last_event_send_ms);
         }
 
         DigiKeyboard.sendKeyPress(event->key, event->mods);
@@ -143,11 +147,12 @@ After I pressed Ctrl+C, keystroke_transcriber provided the following Digispark s
         {
             struct key_event event;
 
+            unsigned long start_time = millis();
             event.key = pgm_read_byte_near(&key_events[i].key);
             event.mods = pgm_read_byte_near(&key_events[i].mods);
             event.delay_before_ms = pgm_read_word_near(&key_events[i].delay_before_ms);
-
             send_key_event(&event);
+            last_event_send_ms = millis() - start_time;
         }
     }
 
@@ -158,9 +163,9 @@ After I pressed Ctrl+C, keystroke_transcriber provided the following Digispark s
 
     void loop()
     {
+
         DigiKeyboard.update();
     }
-
 
 If you flash this sketch on to your Digispark, and plug the Digispark into a Windows
 PC, you will see the keyboard activity I just described, complete with the timing of my original keypresses.
