@@ -27,12 +27,12 @@ setup(
     version=version,
     description=('Records keypress events and converts them for replay on programmable USB HID devices'),
     long_description=long_description,
-    url='http://github.com/eriknyquist/keystroke_transcriber',
+    url='https://github.com/eriknyquist/keystroke_transcriber',
     author='Erik Nyquist',
     author_email='eknyquist@gmail.com',
     license='Apache 2.0',
     install_requires=dependencies,
-    packages=['keystoke_transcriber'],
+    packages=find_packages(),
     include_package_data=True,
     zip_safe=False
 )
