@@ -1,5 +1,6 @@
 import argparse
 import time
+import queue
 
 from keystroke_transcriber import constants as const
 from keystroke_transcriber.recorder import KeystrokeRecorder
@@ -28,33 +29,85 @@ class KeystrokeTranscriber(object):
                                            translate_scan_codes=self.translate_scan_codes,
                                            event_delay_ms=self.event_delay_ms)
 
-    def _record_until_ctrlc(self):
-        print("Recording keyboard events (Press Ctrl-C to stop recording) ...")
-        self.recorder.start()
+    def _log_keypresses(self, time_s=None):
+        start_time_event = None
+        start_time_system = time.time()
+
+        ret = []
 
         try:
             while True:
-                time.sleep(0.01)
-        except KeyboardInterrupt:
-            self.recorder.stop()
-            return self.recorder.events[:-2] # Last two events are Ctrl-C
+                if time_s is not None:
+                    if (time.time() - start_time_system) >= time_s:
+                        # Timeout expired
+                        return ret
 
-    def _record_fixed_time(self, time_s):
-        print("Recording keyboard events for %.2f seconds ..." % time_s)
+                try:
+                    e = self.recorder.wait_for_next_keypress(False, 0.05)
+                except queue.Empty:
+                    continue
+
+                ret.append(e)
+
+                if start_time_event is None:
+                    start_time_event = e.time
+
+                secs_elapsed = e.time - start_time_event
+
+                print("'%s' %s (scan_code=%d, milliseconds=%d)" %
+                      (e.name, "pressed" if e.event_type is "down" else "released",
+                  e.scan_code, int(secs_elapsed * 1000)))
+        except KeyboardInterrupt:
+            pass
+
+        return ret
+
+    def _record_until_ctrlc(self, log_keypresses=True):
+        print("Recording keyboard events (Press Ctrl-C to stop recording) ...")
+        print()
+
         self.recorder.start()
 
-        try:
-            time.sleep(time_s)
-        except KeyboardInterrupt:
-            self.recorder.stop()
+        recorded_events = []
 
-        return self.recorder.events
+        if log_keypresses:
+            recorded_events = self._log_keypresses()
+        else:
+            try:
+                while True:
+                    time.sleep(0.01)
+            except KeyboardInterrupt:
+                self.recorder.stop()
 
-    def transcribe_until_ctrlc(self):
-        return self._process_events(self._record_until_ctrlc())
+            recorded_events = self.recorder.events
 
-    def transcribe_until_time_elapsed(self, seconds):
-        return self._process_events(self._record_fixed_time(seconds))
+        return recorded_events[:-2] # Last two events are Ctrl-C
+
+    def _record_fixed_time(self, time_s, log_keypresses=True):
+        print("Recording keyboard events for %.2f seconds ..." % time_s)
+        print()
+
+        self.recorder.start()
+
+        recorded_events = []
+
+        if log_keypresses:
+            recorded_events = self._log_keypresses(time_s)
+        else:
+            try:
+                time.sleep(time_s)
+            except KeyboardInterrupt:
+                self.recorder.stop()
+
+            recorded_events = self.recorder.events
+
+        return recorded_events
+
+    def transcribe_until_ctrlc(self, log_keypresses=True):
+        return self._process_events(self._record_until_ctrlc(log_keypresses))
+
+    def transcribe_until_time_elapsed(self, seconds, log_keypresses=True):
+        return self._process_events(self._record_fixed_time(seconds, log_keypresses))
 
 
 playback_type_map = {
@@ -98,6 +151,9 @@ parser.add_argument('-r', '--record-seconds', help="Record for this many seconds
 parser.add_argument('-s', '--translate-scan-codes', help="Attempt to translate PS/2 scan codes to USB HID usage ID codes",
                     action='store_true', dest='translate_scan_codes', default=True)
 
+parser.add_argument('-q', '--quiet-keypresses', help="Don't print detected keypresses to the terminal", action='store_true',
+                    dest='quiet_keypresses', default=False)
+
 def main():
     args = parser.parse_args()
 
@@ -109,9 +165,9 @@ def main():
                              event_delay_ms=args.event_delay_ms, output_writer_class=writer_class)
 
     if args.record_seconds is None:
-        output = t.transcribe_until_ctrlc()
+        output = t.transcribe_until_ctrlc(not args.quiet_keypresses)
     else:
-        output = t.transcribe_until_time_elapsed(args.record_seconds)
+        output = t.transcribe_until_time_elapsed(args.record_seconds, not args.quiet_keypresses)
 
     if args.output_file is None:
         print()

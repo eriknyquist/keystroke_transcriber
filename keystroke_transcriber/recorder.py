@@ -6,6 +6,9 @@ class KeyboardEvent(keyboard.KeyboardEvent):
     """
     Extending keyboard.KeyboardEvent to add a .from_json() method
     """
+    def __init__(self, *args, **kwargs):
+        super(KeyboardEvent, self).__init__(*args, **kwargs)
+
     @classmethod
     def from_json(cls, attrs):
         return KeyboardEvent(attrs['event_type'], attrs['scan_code'], name=attrs['name'],
@@ -38,7 +41,9 @@ class KeystrokeRecorder(object):
     def stop(self):
         keyboard.unhook(self._on_keypress)
 
+    def wait_for_next_keypress(self, block=True, timeout=None):
+        return self._queue.get(block, timeout)
+
     @property
     def events(self):
         return list(self._queue.queue)
-
