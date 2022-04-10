@@ -175,7 +175,7 @@ class DigisparkOutputWriter(OutputWriter):
             raise RuntimeError("Unrecognized output type (%d)" % output_type)
 
         # Pick smallest possible type that can hold out highest delay value
-        if highest_delay <= (2**16):
+        if highest_delay < (2**16):
             delay_dtype = 'uint16_t'
             delay_ctype = 'word'
         else:
