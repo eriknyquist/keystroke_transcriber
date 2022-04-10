@@ -81,7 +81,23 @@ class KeystrokeTranscriber(object):
 
             recorded_events = self.recorder.events
 
-        return recorded_events[:-2] # Last two events are Ctrl-C
+        throw_away_last = 2
+        i = (len(recorded_events) - 1 - 4) if (len(recorded_events) >= 4) else 0
+        start_i = i
+
+        # Look for ctrl down followed by C down, throw away everything after and including that
+        while True:
+            e = recorded_events[i]
+            if e.name.startswith('ctrl') and (e.event_type == 'down'):
+                if (i < (len(recorded_events) - 1)):
+                    next_event = recorded_events[i + 1]
+                    if (next_event.name.lower() == "c") and (next_event.event_type == 'down'):
+                        throw_away_last = len(recorded_events) - i
+                        break
+
+            i += 1
+
+        return recorded_events[:-throw_away_last] # Last 2-4 events are Ctrl-C
 
     def _record_fixed_time(self, time_s, log_keypresses=True):
         print("Recording keyboard events for %.2f seconds ..." % time_s)
