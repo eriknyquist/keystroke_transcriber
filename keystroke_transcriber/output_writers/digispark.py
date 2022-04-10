@@ -15,15 +15,15 @@ struct key_event
 {
     uint8_t key;
     uint8_t mods;
-    unsigned long delay_before_ms;
+    uint32_t delay_before_ms;
 };
 
-struct key_event events[NUM_EVENTS] =
+const struct key_event events[NUM_EVENTS] =
 {
 %s
 };
 
-void send_key_event(struct key_event *event)
+void send_key_event(const struct key_event *event)
 {
     if (0u < event->delay_before_ms)
     {
@@ -49,6 +49,7 @@ void setup()
 void loop()
 {
     %s
+    DigiKeyboard.update();
 }
 """
 
