@@ -14,6 +14,7 @@ c_template = "// " + const.AUTOGEN_COMMENT_TEXT + "\n" + """
 // Time taken to read the last event from PROGMEM and send it
 static unsigned long last_event_send_ms = 0u;
 
+// Holds all information required to replay a single keypress
 struct key_event
 {
     uint8_t key;
@@ -21,11 +22,13 @@ struct key_event
     %s delay_before_ms;
 };
 
+// Holds a sequence of one or more keypress events to be replayed
 const struct key_event key_events[NUM_EVENTS] PROGMEM =
 {
 %s
 };
 
+// Send a single keypress event to the USB host
 void send_key_event(const struct key_event *event)
 {
     if (event->delay_before_ms > last_event_send_ms)
