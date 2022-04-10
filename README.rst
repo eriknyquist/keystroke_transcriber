@@ -80,7 +80,9 @@ Then, I performed the following keyboard / mouse actions:
 #. Typed "Hello, from keystroke_transcriber!!!!"
 #. Clicked on the terminal window in which I originally ran keystroke_transcriber, to
    bring it back into focus, so the Ctrl+C signal in the next step would be sent to the
-   program, instead of being sent to notepad
+   program, instead of being sent to notepad (This step will not be recorded/replicated by
+   keystroke_transcriber, since keystroke_transcriber records keypresses and not mouse activity,
+   but it is necessary to successfully record keystroke sequences so I am including it anyway)
 #. Typed Ctrl+C (to stop the recording)
 
 After I pressed Ctrl+C, keystroke_transcriber provided the following Digispark sketch:
