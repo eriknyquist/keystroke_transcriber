@@ -86,6 +86,7 @@ class DigisparkOutputWriter(OutputWriter):
         event_strings = []
 
         keys_down = 0
+        mods_down = 0
         last_event_time = 0
 
         # Keeps track of which modifier keys are pressed
@@ -100,24 +101,16 @@ class DigisparkOutputWriter(OutputWriter):
             if name in mod_name_map:
                 is_mod = True
                 mods_pressed_map[mod_name_map[name]] = "down" == e.event_type
-
-            # Update global counter for how many keys (both regular and modifier keys)
-            # Are being held down. We do this in order to send a "release all keys"
-            # event when no keys are held down any more, since the digispark keyboard
-            # lib doesn't provide a way to release a specific key
-            if e.event_type == "down":
-                keys_down += 1
-            elif e.event_type == "up":
-                keys_down -= 1
-
-                # Ignore all key up events unless it's the last key to be released
-                if keys_down > 0:
-                    continue
+                mods_down += 1 if "down" == e.event_type else -1
             else:
-                raise RuntimeError("unrecognized event type '%s'" % e.event_type)
+                keys_down += 1 if "down" == e.event_type else -1
+
+            # Ignore key up events if no mod keys are being held down
+            if (e.event_type == "up") and (mods_down == 0) and (keys_down > 0):
+                continue
 
             keycode = '0'
-            if keys_down > 0 and not is_mod:
+            if (not is_mod) and keys_down > 0:
                 if translate_scan_codes:
                     scan_code = scan_code_to_usb_id(e.scan_code)
                 else:
