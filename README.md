@@ -11,6 +11,11 @@ Simply tell it which programmable USB HID keyboard platform you're using, and st
 pressing keys. keystroke_transcriber will generate a sketch file for you. You can
 even choose to maintain the timing between your original keypresses, if you want.
 
+Limitations
+-----------
+
+Currently only supports Digispark: Support for Ducky USB and Teensy devices will be coming soon
+
 keystroke_transcriber command-line arguments
 --------------------------------------------
 
@@ -155,8 +160,3 @@ After I pressed Ctrl+C, keystroke_transcriber provided the following Digispark s
 
 If you flash this sketch on to your Digispark, and plug the Digispark into a Windows
 PC, you will see the keyboard activity I just described, complete with the timing of my original keypresses.
-
-Limitations
------------
-
-Currently only supports Digispark: Support for Ducky USB and Teensy devices will be coming soon
