@@ -18,7 +18,7 @@ struct key_event
     uint32_t delay_before_ms;
 };
 
-const struct key_event events[NUM_EVENTS] =
+const struct key_event key_events[NUM_EVENTS] PROGMEM =
 {
 %s
 };
@@ -33,11 +33,21 @@ void send_key_event(const struct key_event *event)
     DigiKeyboard.sendKeyPress(event->key, event->mods);
 }
 
+// Read a single key event from PROGMEM, by array index
+void read_key_event_by_index(int index, struct key_event *event)
+{
+    event->key = pgm_read_byte_near(&key_events[index].key);
+    event->mods = pgm_read_byte_near(&key_events[index].mods);
+    event->delay_before_ms = pgm_read_dword_near(&key_events[index].delay_before_ms);
+}
+
 void replay_key_events()
 {
     for (unsigned i = 0u; i < NUM_EVENTS; i++)
     {
-        send_key_event(&events[i]);
+        struct key_event event;
+        read_key_event_by_index(i, &event);
+        send_key_event(&event);
     }
 }
 
