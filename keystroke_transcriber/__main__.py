@@ -67,7 +67,9 @@ target_type_map = {
     'digispark' : DigisparkOutputWriter
 }
 
-parser = argparse.ArgumentParser(description=const.PROGRAM_DESC, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser = argparse.ArgumentParser(prog='keystroke_transcriber',
+                                 description=const.PROGRAM_DESC,
+                                 formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
 parser.add_argument('-p', '--playback-type', help="Set the playback style for recorded keystroke sequences", type=str,
                     dest='playback_type', choices=list(playback_type_map.keys()), default='oneshot')
@@ -78,10 +80,10 @@ parser.add_argument('-t', '--target-type', help="Set the type of programmable US
 parser.add_argument('-o', '--output-file', help="Write output to this file, instead of printing output to the terminal", type=str,
                     dest='output_file', default=None)
 
-parser.add_argument('-n', '--repeat-count', help="Sets the number of times to repeat sequence (only used if playback_type is repeat-n)",
-                    type=int, dest='repeat_count', default=1)
+parser.add_argument('-n', '--repeat-count', help=("Sets how many times the recorded keystroke sequence should be repeated "
+                    "(only used if playback_type is repeat-n)"), type=int, dest='repeat_count', default=1)
 
-parser.add_argument('-D', '--repeat-delay-ms', help=("Sets delay between repetitions, in milliseconds "
+parser.add_argument('-D', '--repeat-delay-ms', help=("Sets delay between recorded keystroke sequence repetitions, in milliseconds "
                     "(only used if playback_type is repeat-n or repeat-forever)"), type=int, dest='repeat_delay_ms', default=0)
 
 parser.add_argument('-d', '--event-delay-ms', help=("Sets delay between individual keystroke events, in milliseconds "
