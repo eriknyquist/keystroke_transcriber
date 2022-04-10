@@ -11,9 +11,6 @@ c_template = "// " + const.AUTOGEN_COMMENT_TEXT + "\n" + """
 
 #define NUM_EVENTS (%su)
 
-// Time taken to read the last event from PROGMEM and send it
-static unsigned long last_event_send_ms = 0u;
-
 // Holds all information required to replay a single keypress
 struct key_event
 {
@@ -31,12 +28,19 @@ const struct key_event key_events[NUM_EVENTS] PROGMEM =
 // Send a single keypress event to the USB host
 void send_key_event(const struct key_event *event)
 {
-    if (event->delay_before_ms > last_event_send_ms)
+    // millis() timestamp of the last sent event
+    static unsigned long last_event_time_ms = 0u;
+
+    unsigned long elapsed_ms = millis() - last_event_time_ms;
+
+    if (event->delay_before_ms > elapsed_ms)
     {
-        DigiKeyboard.delay(event->delay_before_ms - last_event_send_ms);
+        DigiKeyboard.delay(event->delay_before_ms - elapsed_ms);
     }
 
+    last_event_time_ms = millis();
     DigiKeyboard.sendKeyPress(event->key, event->mods);
+
 }
 
 // Replay all keypress events stored in PROGMEM
@@ -46,12 +50,11 @@ void replay_key_events()
     {
         struct key_event event;
 
-        unsigned long start_time = millis();
         event.key = pgm_read_byte_near(&key_events[i].key);
         event.mods = pgm_read_byte_near(&key_events[i].mods);
         event.delay_before_ms = pgm_read_%s_near(&key_events[i].delay_before_ms);
+
         send_key_event(&event);
-        last_event_send_ms = millis() - start_time;
     }
 }
 
