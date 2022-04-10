@@ -15,7 +15,7 @@ struct key_event
 {
     uint8_t key;
     uint8_t mods;
-    uint32_t delay_before_ms;
+    %s delay_before_ms;
 };
 
 const struct key_event key_events[NUM_EVENTS] PROGMEM =
@@ -33,20 +33,17 @@ void send_key_event(const struct key_event *event)
     DigiKeyboard.sendKeyPress(event->key, event->mods);
 }
 
-// Read a single key event from PROGMEM, by array index
-void read_key_event_by_index(int index, struct key_event *event)
-{
-    event->key = pgm_read_byte_near(&key_events[index].key);
-    event->mods = pgm_read_byte_near(&key_events[index].mods);
-    event->delay_before_ms = pgm_read_dword_near(&key_events[index].delay_before_ms);
-}
-
+// Replay all keypress events stored in PROGMEM
 void replay_key_events()
 {
     for (unsigned i = 0u; i < NUM_EVENTS; i++)
     {
         struct key_event event;
-        read_key_event_by_index(i, &event);
+
+        event.key = pgm_read_byte_near(&key_events[i].key);
+        event.mods = pgm_read_byte_near(&key_events[i].mods);
+        event.delay_before_ms = pgm_read_word_near(&key_events[i].delay_before_ms);
+
         send_key_event(&event);
     }
 }
@@ -88,6 +85,7 @@ class DigisparkOutputWriter(OutputWriter):
         keys_down = 0
         mods_down = 0
         last_event_time = 0
+        highest_delay = 0
 
         # Keeps track of which modifier keys are pressed
         mods_pressed_map = {n: False for n in mod_name_map.values()}
@@ -128,16 +126,19 @@ class DigisparkOutputWriter(OutputWriter):
             # Calculate millisecond delay time
             if maintain_timing:
                 if last_event_time == 0:
-                    delay_before_ms = '0u'
+                    delay_before_ms = 0
                 else:
                    delay_before_s = e.time - last_event_time
-                   delay_before_ms = str(int(delay_before_s * 1000)) + 'u'
+                   delay_before_ms = int(delay_before_s * 1000)
             else:
-                delay_before_ms = str(event_delay_ms) + 'u'
+                delay_before_ms = event_delay_ms
+
+            if delay_before_ms > highest_delay:
+                highest_delay = delay_before_ms
 
             last_event_time = e.time
 
-            event_strings.append('{%s, %s, %s}' % (keycode, mods, delay_before_ms))
+            event_strings.append('{%s, %s, %du}' % (keycode, mods, delay_before_ms))
 
         event_array = utils.list_to_csv_string(event_strings)
 
@@ -166,4 +167,12 @@ class DigisparkOutputWriter(OutputWriter):
         else:
             raise RuntimeError("Unrecognized output type (%d)" % output_type)
 
-        return c_template % (len(event_strings), event_array, setup_text, loop_text)
+        # Pick smallest possible type that can hold out highest delay value
+        if highest_delay <= (2**16):
+            delay_type = 'uint16_t'
+        elif highest_delay <= (2**32):
+            delay_type = 'uint32_t'
+        else:
+            delay_type = 'uint64_t'
+
+        return c_template % (len(event_strings), delay_type, event_array, setup_text, loop_text)
