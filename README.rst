@@ -75,12 +75,15 @@ keypress events until Ctrl+C, and generate a sketch for Digispark devices:
 
     python -m keystroke_transcriber -p oneshot -t digispark -m
 
-Then, I performed the following keypresses:
+Then, I performed the following keyboard / mouse actions:
 
 #. Typed Ctrl+R (to open the "run" program)
 #. Typed "notepad", followed by the Enter key (to open the Notepad application)
 #. Typed "Hello, from keystroke_transcriber!!!!"
-#. Typed Ctrl+C to stop the recording
+#. Clicked on the terminal window in which I originally ran keystroke_transcriber, to
+   bring it back into focus, so the Ctrl+C signal in the next step would be sent to the
+   program, instead of being sent to notepad
+#. Typed Ctrl+C (to stop the recording)
 
 After I pressed Ctrl+C, keystroke_transcriber provided the following Digispark sketch:
 
