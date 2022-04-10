@@ -169,10 +169,10 @@ class DigisparkOutputWriter(OutputWriter):
 
         # Pick smallest possible type that can hold out highest delay value
         if highest_delay <= (2**16):
-            delay_type = 'uint16_t'
-        elif highest_delay <= (2**32):
-            delay_type = 'uint32_t'
+            delay_dtype = 'uint16_t'
+            delay_ctype = 'word'
         else:
-            delay_type = 'uint64_t'
+            delay_dtype = 'uint32_t'
+            delay_ctype = 'dword'
 
-        return c_template % (len(event_strings), delay_type, event_array, setup_text, loop_text)
+        return c_template % (len(event_strings), delay_dtype, event_array, delay_ctype, setup_text, loop_text)
