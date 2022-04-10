@@ -65,7 +65,7 @@ keypress events until Ctrl+C, and generate a sketch for Digispark devices:
 
 ::
 
-    python -m keystroke_transcriber -p oneshot -t digispark
+    python -m keystroke_transcriber -p oneshot -t digispark -m
 
 Then, I performed the following keypresses:
 
