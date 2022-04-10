@@ -16,6 +16,15 @@ Limitations
 
 Currently only supports Digispark: Support for Ducky USB and Teensy devices will be coming soon
 
+Install
+-------
+
+Install from pypi:
+
+::
+
+    pip install keystroke_transcriber
+
 keystroke_transcriber command-line arguments
 --------------------------------------------
 
