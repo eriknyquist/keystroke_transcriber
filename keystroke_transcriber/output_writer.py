@@ -1,7 +1,7 @@
 import keystroke_transcriber.recorder
 
 
-class OutputType(object):
+class PlaybackType(object):
     ONE_SHOT = 1        # Keystroke sequence is replayed once
     REPEAT_FOREVER = 2  # Keystroke sequence is repeated forever
     REPEAT_N = 3        # Keystroke sequence is repeated a specific number of times
@@ -17,7 +17,7 @@ class OutputWriter(object):
         Process a list of keystroke events and return the result
 
         :param [keyboard_transcriber.recorder.KeyboardEvent] keyboard_events: list of keyboard events to process
-        :param OutputType output_type: Type of output to generate
+        :param PlaybackType output_type: Type of output to generate
         :param int repeat_count: Number of times to repeat sequence (only used if output_type is REPEAT_N)
         :param int repeat_delay_ms: Delay between each repetition, in milliseconds (only used if output_type is REPEAT_N)
         :param bool maintain_timing: If True, timing between keystroke events will be maintained.\

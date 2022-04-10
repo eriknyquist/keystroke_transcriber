@@ -1,7 +1,7 @@
 import keyboard
 
 from keystroke_transcriber.utils import scan_code_to_usb_id
-from keystroke_transcriber.output_writer import OutputWriter, OutputType
+from keystroke_transcriber.output_writer import OutputWriter, PlaybackType
 
 
 c_template ="""
@@ -135,18 +135,18 @@ class DigisparkOutputWriter(OutputWriter):
 
         # Decide where to call the function which replays keyboard events,
         # based on the 'output_type' provided
-        if output_type == OutputType.ONE_SHOT:
+        if output_type == PlaybackType.ONE_SHOT:
             setup_text = 'replay_key_events();'
             loop_text = ''
 
-        elif output_type == OutputType.REPEAT_FOREVER:
+        elif output_type == PlaybackType.REPEAT_FOREVER:
             setup_text = ''
             loop_text = 'replay_key_events();'
 
             if repeat_delay_ms > 0:
                 loop_text += ' DigiKeyboard.delay(%s);' % repeat_delay_ms
 
-        elif output_type == OutputType.REPEAT_N:
+        elif output_type == PlaybackType.REPEAT_N:
             if repeat_delay_ms > 0:
                 setup_text = ('for (unsigned i = 0u; i < %du; i++)'
                               '{ replay_key_events(); DigiKeyboard.delay(%s); }'

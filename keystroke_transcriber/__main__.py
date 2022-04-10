@@ -2,13 +2,13 @@ import argparse
 import time
 from keystroke_transcriber.recorder import KeystrokeRecorder
 from keystroke_transcriber.output_writers.digispark import DigisparkOutputWriter
-from keystroke_transcriber.output_writer import OutputType
+from keystroke_transcriber.output_writer import PlaybackType
 
 
 class KeystrokeTranscriber(object):
-    def __init__(self, output_type, repeat_count=0, repeat_delay_ms=0, maintain_timing=False,
+    def __init__(self, playback_type, repeat_count=0, repeat_delay_ms=0, maintain_timing=False,
                  translate_scan_codes=True):
-        self.output_type = output_type
+        self.playback_type = playback_type
         self.repeat_count = repeat_count
         self.repeat_delay_ms = repeat_delay_ms
         self.maintain_timing = maintain_timing
@@ -18,7 +18,7 @@ class KeystrokeTranscriber(object):
         self.writer = DigisparkOutputWriter()
 
     def _process_events(self, events):
-        return self.writer.generate_output(events, self.output_type, repeat_count=self.repeat_count,
+        return self.writer.generate_output(events, self.playback_type, repeat_count=self.repeat_count,
                                            repeat_delay_ms=self.repeat_delay_ms, maintain_timing=self.maintain_timing,
                                            translate_scan_codes=self.translate_scan_codes)
 
@@ -37,23 +37,23 @@ class KeystrokeTranscriber(object):
         return self._process_events(self._record_until_ctrlc())
 
 
-output_type_map = {
-    'oneshot': OutputType.ONE_SHOT,
-    'repeat-forever': OutputType.REPEAT_FOREVER,
-    'repeat-n': OutputType.REPEAT_N
+playback_type_map = {
+    'oneshot': PlaybackType.ONE_SHOT,
+    'repeat-forever': PlaybackType.REPEAT_FOREVER,
+    'repeat-n': PlaybackType.REPEAT_N
 }
 
 def main():
     parser = argparse.ArgumentParser(description='Record and transcribe keyboard events into various replay formats.')
 
-    parser.add_argument('-t', '--output-type', help="Set the output type for replay generation", type=str,
-                        dest='output_type', choices=list(output_type_map.keys()), default='oneshot')
+    parser.add_argument('-t', '--playback-type', help="Set the playback style for recorded keystroke sequences", type=str,
+                        dest='playback_type', choices=list(playback_type_map.keys()), default='oneshot')
 
-    parser.add_argument('-n', '--repeat-count', help="Sets the number of times to repeat sequence (only used if output_type is repeat-n)",
+    parser.add_argument('-n', '--repeat-count', help="Sets the number of times to repeat sequence (only used if playback_type is repeat-n)",
                         type=int, dest='repeat_count', default=1)
 
     parser.add_argument('-d', '--repeat-delay-ms', help=("Sets delay between repetitions, in milliseconds "
-                        "(only used if output_type is repeat-n or repeat-forever)"), type=int, dest='repeat_delay_ms', default=0)
+                        "(only used if playback_type is repeat-n or repeat-forever)"), type=int, dest='repeat_delay_ms', default=0)
 
     parser.add_argument('-m', '--maintain-timing', help="Maintain timing between recorded keystrokes", action='store_true',
                         dest='maintain_timing', default=True)
@@ -63,7 +63,7 @@ def main():
 
     args = parser.parse_args()
 
-    t = KeystrokeTranscriber(output_type_map[args.output_type], repeat_count=args.repeat_count,
+    t = KeystrokeTranscriber(playback_type_map[args.playback_type], repeat_count=args.repeat_count,
                              repeat_delay_ms=args.repeat_delay_ms, maintain_timing=args.maintain_timing,
                              translate_scan_codes=args.translate_scan_codes)
 
