@@ -1,11 +1,12 @@
 import keyboard
 
 from keystroke_transcriber import utils
+from keystroke_transcriber import constants as const
 from keystroke_transcriber.utils import scan_code_to_usb_id
 from keystroke_transcriber.output_writer import OutputWriter, PlaybackType
 
 
-c_template ="""
+c_template = "// " + const.AUTOGEN_COMMENT_TEXT + "\n" + """
 #include "DigiKeyboard.h"
 
 #define NUM_EVENTS (%su)
@@ -70,7 +71,7 @@ class DigisparkOutputWriter(OutputWriter):
     that generates the same keypress events
     """
     def generate_output(self, keyboard_events, output_type, repeat_count=0, repeat_delay_ms=0,
-                        maintain_timing=False, translate_scan_codes=True):
+                        maintain_timing=False, translate_scan_codes=True, event_delay_ms=0):
         event_strings = []
 
         keys_down = 0
@@ -128,7 +129,7 @@ class DigisparkOutputWriter(OutputWriter):
                    delay_before_s = e.time - last_event_time
                    delay_before_ms = str(int(delay_before_s * 1000)) + 'u'
             else:
-                delay_before_ms = '0u'
+                delay_before_ms = str(event_delay_ms) + 'u'
 
             last_event_time = e.time
 
