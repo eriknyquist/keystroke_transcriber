@@ -81,13 +81,13 @@ parser.add_argument('-o', '--output-file', help="Write output to this file, inst
                     dest='output_file', default=None)
 
 parser.add_argument('-n', '--repeat-count', help=("Sets how many times the recorded keystroke sequence should be repeated "
-                    "(only used if playback_type is repeat-n)"), type=int, dest='repeat_count', default=1)
+                    "(only used if --playback-type is repeat-n)"), type=int, dest='repeat_count', default=1)
 
 parser.add_argument('-D', '--repeat-delay-ms', help=("Sets delay between recorded keystroke sequence repetitions, in milliseconds "
-                    "(only used if playback_type is repeat-n or repeat-forever)"), type=int, dest='repeat_delay_ms', default=0)
+                    "(only used if --playback-type is repeat-n or repeat-forever)"), type=int, dest='repeat_delay_ms', default=0)
 
 parser.add_argument('-d', '--event-delay-ms', help=("Sets delay between individual keystroke events, in milliseconds "
-                    "(only used if maintain_timing is False)"), type=int, dest='event_delay_ms', default=0)
+                    "(only used if --maintain-timing is False)"), type=int, dest='event_delay_ms', default=0)
 
 parser.add_argument('-m', '--maintain-timing', help="Maintain timing between recorded keystrokes", action='store_true',
                     dest='maintain_timing', default=False)
