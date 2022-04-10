@@ -130,3 +130,25 @@ def scan_code_to_usb_id(code):
         return code
 
     return scan_code_to_usb_id_map[code]
+
+def list_to_csv_string(items, column_limit=80, indent_spaces=4):
+    lines = []
+    indent =  ' ' * indent_spaces
+
+    current_line = indent
+
+    for i in range(len(items)):
+        item = items[i]
+        new_text = item
+        if i < (len(items) - 1):
+            new_text += ', '
+
+        if len(current_line + new_text) > column_limit:
+            # reset line
+            lines.append(current_line)
+            current_line = indent
+
+        current_line += new_text
+
+    lines.append(current_line)
+    return '\n'.join(lines)

@@ -1,5 +1,6 @@
 import keyboard
 
+from keystroke_transcriber import utils
 from keystroke_transcriber.utils import scan_code_to_usb_id
 from keystroke_transcriber.output_writer import OutputWriter, PlaybackType
 
@@ -18,7 +19,7 @@ struct key_event
 
 struct key_event events[NUM_EVENTS] =
 {
-    %s
+%s
 };
 
 void send_key_event(struct key_event *event)
@@ -133,6 +134,8 @@ class DigisparkOutputWriter(OutputWriter):
 
             event_strings.append('{%s, %s, %s}' % (keycode, mods, delay_before_ms))
 
+        event_array = utils.list_to_csv_string(event_strings)
+
         # Decide where to call the function which replays keyboard events,
         # based on the 'output_type' provided
         if output_type == PlaybackType.ONE_SHOT:
@@ -158,5 +161,4 @@ class DigisparkOutputWriter(OutputWriter):
         else:
             raise RuntimeError("Unrecognized output type (%d)" % output_type)
 
-        print("DOWN: " + str(keys_down))
-        return c_template % (len(event_strings), ',\n    '.join(event_strings), setup_text, loop_text)
+        return c_template % (len(event_strings), event_array, setup_text, loop_text)
